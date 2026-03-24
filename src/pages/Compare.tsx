@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react'
 import { supabase } from '../lib/supabase'
 import type { Measurement } from '../types'
+import { TrendingDown, TrendingUp, Minus, BarChart3 } from 'lucide-react'
 
 export default function Compare() {
   const [measurements, setMeasurements] = useState<Measurement[]>([])
@@ -10,33 +11,38 @@ export default function Compare() {
     const fetchMeasurements = async () => {
       const { data: { user } } = await supabase.auth.getUser()
       if (!user) return
-
       const { data } = await supabase
         .from('measurements')
         .select('*')
         .eq('user_id', user.id)
         .order('created_at', { ascending: true })
-
       setMeasurements(data || [])
       setLoading(false)
     }
-
     fetchMeasurements()
   }, [])
 
   if (loading) {
-    return <div className="text-center py-8">Loading...</div>
+    return (
+      <div className="min-h-screen bg-gradient-to-br from-gray-50 to-teal-50 flex items-center justify-center">
+        <div className="animate-pulse text-teal-600 font-medium">Loading comparison...</div>
+      </div>
+    )
   }
 
   if (measurements.length < 2) {
     return (
-      <div className="max-w-2xl mx-auto px-4 py-8 text-center">
-        <p className="text-gray-600 mb-4">
-          You need at least 2 measurements to compare progress
-        </p>
-        <a href="/measure" className="text-indigo-600 hover:underline">
-          Take a measurement →
-        </a>
+      <div className="min-h-screen bg-gradient-to-br from-gray-50 to-teal-50 flex items-center justify-center px-4">
+        <div className="text-center">
+          <div className="w-20 h-20 bg-teal-100 rounded-2xl flex items-center justify-center mx-auto mb-4">
+            <BarChart3 className="w-10 h-10 text-teal-400" />
+          </div>
+          <h2 className="text-lg font-semibold text-gray-900 mb-2">Need at least 2 measurements</h2>
+          <p className="text-sm text-gray-500 mb-4">Track your progress over time to see how you're changing</p>
+          <a href="/measure" className="inline-flex items-center gap-2 bg-teal-600 text-white px-5 py-2.5 rounded-xl hover:bg-teal-700 transition text-sm font-medium">
+            Take Measurement →
+          </a>
+        </div>
       </div>
     )
   }
@@ -47,55 +53,116 @@ export default function Compare() {
   const calcDiff = (a: number | null, b: number | null) => {
     if (!a || !b) return null
     const diff = b - a
-    return diff > 0 ? `+${diff}` : `${diff}`
+    return diff
   }
 
-  return (
-    <div className="max-w-2xl mx-auto px-4 py-8">
-      <h1 className="text-2xl font-bold mb-6">Progress Comparison</h1>
+  const formatDate = (d: string) => new Date(d).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })
 
-      <div className="bg-white rounded-xl shadow p-6 mb-6">
-        <div className="grid grid-cols-3 gap-4 text-center mb-6">
-          <div>
-            <p className="text-sm text-gray-500">First</p>
-            <p className="text-xs text-gray-400">
-              {new Date(first.created_at).toLocaleDateString()}
-            </p>
+  const metrics = [
+    { label: 'Waist', key: 'waist' as const },
+    { label: 'Chest', key: 'chest' as const },
+    { label: 'Hip', key: 'hip' as const },
+  ]
+
+  return (
+    <div className="min-h-screen bg-gradient-to-br from-gray-50 to-teal-50 py-8 px-4">
+      <div className="max-w-lg mx-auto">
+        <div className="text-center mb-8">
+          <div className="inline-flex items-center gap-2 bg-teal-100 text-teal-700 px-3 py-1 rounded-full text-xs font-medium mb-3">
+            <BarChart3 className="w-3 h-3" /> Progress Analysis
           </div>
-          <div>
-            <p className="text-sm text-gray-500">Latest</p>
-            <p className="text-xs text-gray-400">
-              {new Date(last.created_at).toLocaleDateString()}
-            </p>
+          <h1 className="text-xl font-bold text-gray-900">Progress Comparison</h1>
+          <p className="text-xs text-gray-500 mt-1">Comparing your first and latest measurement</p>
+        </div>
+
+        {/* Timeline header */}
+        <div className="bg-white rounded-2xl shadow-lg p-5 mb-4">
+          <div className="flex items-center justify-between">
+            <div className="text-center flex-1">
+              <p className="text-xs text-gray-400 mb-1">First</p>
+              <p className="text-sm font-semibold text-gray-700">{formatDate(first.created_at)}</p>
+            </div>
+            <div className="flex items-center gap-1 text-indigo-400">
+              <div className="h-px w-8 bg-indigo-200" />
+              <BarChart3 className="w-4 h-4" />
+              <div className="h-px w-8 bg-indigo-200" />
+            </div>
+            <div className="text-center flex-1">
+              <p className="text-xs text-gray-400 mb-1">Latest</p>
+              <p className="text-sm font-semibold text-gray-700">{formatDate(last.created_at)}</p>
+            </div>
           </div>
-          <div>
-            <p className="text-sm text-gray-500">Change</p>
+          <p className="text-center text-xs text-gray-400 mt-3">{measurements.length} total measurements</p>
+        </div>
+
+        {/* Metrics comparison */}
+        <div className="bg-white rounded-2xl shadow-lg p-5 mb-4">
+          <h3 className="font-semibold text-gray-900 mb-4 flex items-center gap-2 text-sm">
+            <TrendingDown className="w-4 h-4 text-indigo-600" /> Body Measurements
+          </h3>
+
+          <div className="space-y-4">
+            {metrics.map(({ label, key }) => {
+              const diff = calcDiff(first[key], last[key])
+              const firstVal = first[key]
+              const lastVal = last[key]
+              const isPositive = diff !== null && diff > 0
+              const isNegative = diff !== null && diff < 0
+              const diffColor = isPositive ? 'text-red-500' : isNegative ? 'text-green-500' : 'text-gray-400'
+              const diffBg = isPositive ? 'bg-red-50' : isNegative ? 'bg-green-50' : 'bg-gray-50'
+              const DiffIcon = isPositive ? TrendingUp : isNegative ? TrendingDown : Minus
+
+              return (
+                <div key={label} className="flex items-center gap-3">
+                  <span className="w-14 text-sm font-medium text-gray-600">{label}</span>
+                  <div className="flex-1 bg-gray-50 rounded-xl p-3">
+                    <div className="flex items-center justify-between">
+                      <span className="text-sm font-semibold text-gray-700">{firstVal ?? '—'}</span>
+                      <div className="flex items-center gap-2">
+                        <span className="text-xs text-gray-400">→</span>
+                        <span className="text-sm font-semibold text-gray-700">{lastVal ?? '—'}</span>
+                      </div>
+                    </div>
+                    {/* Progress bar */}
+                    {firstVal && lastVal && (
+                      <div className="mt-2 h-1.5 bg-gray-200 rounded-full overflow-hidden">
+                        <div
+                          className={`h-full rounded-full transition-all ${isNegative ? 'bg-green-400' : isPositive ? 'bg-red-400' : 'bg-gray-400'}`}
+                          style={{ width: `${Math.min(100, Math.abs(diff!) / Math.max(firstVal, lastVal) * 100 + 20)}%` }}
+                        />
+                      </div>
+                    )}
+                  </div>
+                  <div className={`flex items-center gap-1 px-2.5 py-1.5 rounded-xl ${diffBg}`}>
+                    <DiffIcon className={`w-3.5 h-3.5 ${diffColor}`} />
+                    <span className={`text-sm font-bold ${diffColor}`}>
+                      {diff !== null ? (diff > 0 ? `+${diff}` : `${diff}`) : '—'}
+                    </span>
+                  </div>
+                </div>
+              )
+            })}
           </div>
         </div>
 
-        <div className="space-y-4">
-          {[
-            { label: 'Waist', first: first.waist, last: last.waist },
-            { label: 'Chest', first: first.chest, last: last.chest },
-            { label: 'Hip', first: first.hip, last: last.hip },
-          ].map(({ label, first, last }) => (
-            <div key={label} className="flex items-center gap-4">
-              <span className="w-16 text-sm font-medium">{label}</span>
-              <span className="flex-1 text-center">{first || '-'}</span>
-              <span className="flex-1 text-center">{last || '-'}</span>
-              <span className={`w-12 text-center font-bold ${
-                calcDiff(first, last)?.startsWith('+') ? 'text-red-500' : 'text-green-500'
-              }`}>
-                {calcDiff(first, last) || '-'}
-              </span>
-            </div>
-          ))}
+        {/* Legend */}
+        <div className="bg-white/60 rounded-xl p-4">
+          <p className="text-xs font-medium text-gray-500 mb-3">What the colors mean</p>
+          <div className="flex gap-4">
+            {[
+              { icon: TrendingDown, color: 'text-green-500', bg: 'bg-green-50', label: 'Decrease (good for waist/hip)' },
+              { icon: TrendingUp, color: 'text-red-500', bg: 'bg-red-50', label: 'Increase' },
+            ].map(({ icon: Icon, color, bg, label }) => (
+              <div key={label} className="flex items-center gap-1.5">
+                <div className={`p-1 rounded-lg ${bg}`}>
+                  <Icon className={`w-3 h-3 ${color}`} />
+                </div>
+                <span className="text-xs text-gray-500">{label}</span>
+              </div>
+            ))}
+          </div>
         </div>
       </div>
-
-      <p className="text-center text-sm text-gray-500">
-        Green = progress (loss/gain depending on your goal)
-      </p>
     </div>
   )
 }
