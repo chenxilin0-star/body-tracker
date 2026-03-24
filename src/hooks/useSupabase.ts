@@ -14,6 +14,15 @@ export const signUp = async (email: string, password: string) => {
   })
 }
 
+export const signInWithGoogle = async () => {
+  return await supabase.auth.signInWithOAuth({
+    provider: 'google',
+    options: {
+      redirectTo: window.location.origin + '/auth/callback',
+    },
+  })
+}
+
 export const signOut = async () => {
   return await supabase.auth.signOut()
 }

@@ -1,7 +1,7 @@
 import { useState, useRef } from 'react'
 import { supabase } from '../lib/supabase'
 import { initPoseLandmarker, detectPose } from '../lib/pose'
-import { Camera, Upload } from 'lucide-react'
+import { Camera } from 'lucide-react'
 
 export default function Measure() {
   const [loading, setLoading] = useState(false)
