@@ -3,6 +3,7 @@ import { Link, useNavigate } from 'react-router-dom'
 import { signInWithPassword, signInWithGoogle } from '../hooks/useSupabase'
 import { useUserStore } from '../store/userStore'
 import { Activity, Mail, Lock, ArrowRight } from 'lucide-react'
+import { useTranslation } from 'react-i18next'
 
 export default function Login() {
   const [email, setEmail] = useState('')
@@ -11,6 +12,7 @@ export default function Login() {
   const [loading, setLoading] = useState(false)
   const setUser = useUserStore((state) => state.setUser)
   const navigate = useNavigate()
+  const { t } = useTranslation()
 
   const handleGoogleLogin = async () => {
     setLoading(true)
@@ -48,15 +50,15 @@ export default function Login() {
               <div className="p-3 bg-white/10 rounded-2xl backdrop-blur-sm">
                 <Activity className="w-8 h-8 text-white" />
               </div>
-              <h1 className="text-3xl font-bold text-white tracking-tight">Body Tracker</h1>
+              <h1 className="text-3xl font-bold text-white tracking-tight">{t('login.title')}</h1>
             </div>
-            <p className="text-indigo-200 text-sm">Track your fitness journey, one measurement at a time</p>
+            <p className="text-indigo-200 text-sm">{t('login.subtitle')}</p>
           </div>
 
           {/* Card */}
           <div className="bg-white rounded-2xl shadow-2xl p-8">
-            <h2 className="text-xl font-semibold text-gray-900 mb-1">Welcome back</h2>
-            <p className="text-sm text-gray-500 mb-6">Sign in to continue tracking</p>
+            <h2 className="text-xl font-semibold text-gray-900 mb-1">{t('login.welcomeBack')}</h2>
+            <p className="text-sm text-gray-500 mb-6">{t('login.signInToContinue')}</p>
 
             {error && (
               <div className="mb-4 p-3 bg-red-50 border border-red-200 rounded-lg text-red-600 text-sm">
@@ -66,7 +68,7 @@ export default function Login() {
 
             <form onSubmit={handleSubmit} className="space-y-4">
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1.5">Email</label>
+                <label className="block text-sm font-medium text-gray-700 mb-1.5">{t('login.email')}</label>
                 <div className="relative">
                   <Mail className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
                   <input
@@ -81,7 +83,7 @@ export default function Login() {
               </div>
 
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1.5">Password</label>
+                <label className="block text-sm font-medium text-gray-700 mb-1.5">{t('login.password')}</label>
                 <div className="relative">
                   <Lock className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
                   <input
@@ -101,9 +103,9 @@ export default function Login() {
                 className="w-full flex items-center justify-center gap-2 bg-indigo-600 text-white py-2.5 rounded-xl hover:bg-indigo-700 active:scale-[0.98] transition-all disabled:opacity-60"
               >
                 {loading ? (
-                  <span className="animate-pulse">Signing in...</span>
+                  <span className="animate-pulse">{t('login.signingIn')}</span>
                 ) : (
-                  <>Sign In <ArrowRight className="w-4 h-4" /></>
+                  <>{t('login.signIn')} <ArrowRight className="w-4 h-4" /></>
                 )}
               </button>
             </form>
@@ -113,7 +115,7 @@ export default function Login() {
                 <div className="w-full border-t border-gray-200" />
               </div>
               <div className="relative flex justify-center">
-                <span className="px-4 bg-white text-xs text-gray-400">or continue with</span>
+                <span className="px-4 bg-white text-xs text-gray-400">{t('login.orContinueWith')}</span>
               </div>
             </div>
 
@@ -129,14 +131,14 @@ export default function Login() {
                 <path fill="#FBBC05" d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z"/>
                 <path fill="#EA4335" d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z"/>
               </svg>
-              Sign in with Google
+              {t('login.signInWithGoogle')}
             </button>
           </div>
 
           <p className="text-center mt-6 text-sm text-indigo-200">
-            Don't have an account?{' '}
+            {t('login.noAccount')}{' '}
             <Link to="/register" className="text-white font-medium hover:underline underline-offset-2">
-              Sign up free →
+              {t('login.signUpFree')}
             </Link>
           </p>
         </div>

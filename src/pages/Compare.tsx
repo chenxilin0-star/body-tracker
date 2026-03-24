@@ -2,10 +2,12 @@ import { useEffect, useState } from 'react'
 import { supabase } from '../lib/supabase'
 import type { Measurement } from '../types'
 import { TrendingDown, TrendingUp, Minus, BarChart3 } from 'lucide-react'
+import { useTranslation } from 'react-i18next'
 
 export default function Compare() {
   const [measurements, setMeasurements] = useState<Measurement[]>([])
   const [loading, setLoading] = useState(true)
+  const { t } = useTranslation()
 
   useEffect(() => {
     const fetchMeasurements = async () => {
@@ -25,7 +27,7 @@ export default function Compare() {
   if (loading) {
     return (
       <div className="min-h-screen bg-gradient-to-br from-gray-50 to-teal-50 flex items-center justify-center">
-        <div className="animate-pulse text-teal-600 font-medium">Loading comparison...</div>
+        <div className="animate-pulse text-teal-600 font-medium">{t('compare.loading')}</div>
       </div>
     )
   }
@@ -37,10 +39,10 @@ export default function Compare() {
           <div className="w-20 h-20 bg-teal-100 rounded-2xl flex items-center justify-center mx-auto mb-4">
             <BarChart3 className="w-10 h-10 text-teal-400" />
           </div>
-          <h2 className="text-lg font-semibold text-gray-900 mb-2">Need at least 2 measurements</h2>
-          <p className="text-sm text-gray-500 mb-4">Track your progress over time to see how you're changing</p>
+          <h2 className="text-lg font-semibold text-gray-900 mb-2">{t('compare.needAtLeast2')}</h2>
+          <p className="text-sm text-gray-500 mb-4">{t('compare.needAtLeast2Desc')}</p>
           <a href="/measure" className="inline-flex items-center gap-2 bg-teal-600 text-white px-5 py-2.5 rounded-xl hover:bg-teal-700 transition text-sm font-medium">
-            Take Measurement →
+            {t('compare.takeMeasurement')}
           </a>
         </div>
       </div>
@@ -59,9 +61,9 @@ export default function Compare() {
   const formatDate = (d: string) => new Date(d).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })
 
   const metrics = [
-    { label: 'Waist', key: 'waist' as const },
-    { label: 'Chest', key: 'chest' as const },
-    { label: 'Hip', key: 'hip' as const },
+    { label: t('compare.waist'), key: 'waist' as const },
+    { label: t('compare.chest'), key: 'chest' as const },
+    { label: t('compare.hip'), key: 'hip' as const },
   ]
 
   return (
@@ -69,17 +71,17 @@ export default function Compare() {
       <div className="max-w-lg mx-auto">
         <div className="text-center mb-8">
           <div className="inline-flex items-center gap-2 bg-teal-100 text-teal-700 px-3 py-1 rounded-full text-xs font-medium mb-3">
-            <BarChart3 className="w-3 h-3" /> Progress Analysis
+            <BarChart3 className="w-3 h-3" /> {t('compare.progressAnalysis')}
           </div>
-          <h1 className="text-xl font-bold text-gray-900">Progress Comparison</h1>
-          <p className="text-xs text-gray-500 mt-1">Comparing your first and latest measurement</p>
+          <h1 className="text-xl font-bold text-gray-900">{t('compare.title')}</h1>
+          <p className="text-xs text-gray-500 mt-1">{t('compare.subtitle')}</p>
         </div>
 
         {/* Timeline header */}
         <div className="bg-white rounded-2xl shadow-lg p-5 mb-4">
           <div className="flex items-center justify-between">
             <div className="text-center flex-1">
-              <p className="text-xs text-gray-400 mb-1">First</p>
+              <p className="text-xs text-gray-400 mb-1">{t('compare.first')}</p>
               <p className="text-sm font-semibold text-gray-700">{formatDate(first.created_at)}</p>
             </div>
             <div className="flex items-center gap-1 text-indigo-400">
@@ -88,17 +90,17 @@ export default function Compare() {
               <div className="h-px w-8 bg-indigo-200" />
             </div>
             <div className="text-center flex-1">
-              <p className="text-xs text-gray-400 mb-1">Latest</p>
+              <p className="text-xs text-gray-400 mb-1">{t('compare.latest')}</p>
               <p className="text-sm font-semibold text-gray-700">{formatDate(last.created_at)}</p>
             </div>
           </div>
-          <p className="text-center text-xs text-gray-400 mt-3">{measurements.length} total measurements</p>
+          <p className="text-center text-xs text-gray-400 mt-3">{measurements.length} {t('compare.totalMeasurements')}</p>
         </div>
 
         {/* Metrics comparison */}
         <div className="bg-white rounded-2xl shadow-lg p-5 mb-4">
           <h3 className="font-semibold text-gray-900 mb-4 flex items-center gap-2 text-sm">
-            <TrendingDown className="w-4 h-4 text-indigo-600" /> Body Measurements
+            <TrendingDown className="w-4 h-4 text-indigo-600" /> {t('compare.bodyMeasurements')}
           </h3>
 
           <div className="space-y-4">
@@ -147,11 +149,11 @@ export default function Compare() {
 
         {/* Legend */}
         <div className="bg-white/60 rounded-xl p-4">
-          <p className="text-xs font-medium text-gray-500 mb-3">What the colors mean</p>
+          <p className="text-xs font-medium text-gray-500 mb-3">{t('compare.whatColorsMean')}</p>
           <div className="flex gap-4">
             {[
-              { icon: TrendingDown, color: 'text-green-500', bg: 'bg-green-50', label: 'Decrease (good for waist/hip)' },
-              { icon: TrendingUp, color: 'text-red-500', bg: 'bg-red-50', label: 'Increase' },
+              { icon: TrendingDown, color: 'text-green-500', bg: 'bg-green-50', label: t('compare.decreaseGood') },
+              { icon: TrendingUp, color: 'text-red-500', bg: 'bg-red-50', label: t('compare.increase') },
             ].map(({ icon: Icon, color, bg, label }) => (
               <div key={label} className="flex items-center gap-1.5">
                 <div className={`p-1 rounded-lg ${bg}`}>

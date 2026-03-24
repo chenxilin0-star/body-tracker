@@ -2,25 +2,47 @@ import { useState, useRef } from 'react'
 import { supabase } from '../lib/supabase'
 import { initPoseLandmarker, detectPose } from '../lib/pose'
 import { Camera, Upload, CheckCircle, RefreshCw, Save, Zap, Target, ShieldCheck } from 'lucide-react'
+import { useTranslation } from 'react-i18next'
 
 export default function Measure() {
   const [loading, setLoading] = useState(false)
-  const [message, setMessage] = useState('Initialize the AI model to start measuring')
   const [imageUrl, setImageUrl] = useState<string | null>(null)
   const [measurements, setMeasurements] = useState<{waist?: number, hip?: number, chest?: number} | null>(null)
   const [saved, setSaved] = useState(false)
   const fileInputRef = useRef<HTMLInputElement>(null)
   const [poseInitialized, setPoseInitialized] = useState(false)
+  const [statusKey, setStatusKey] = useState<'init' | 'loading' | 'ready' | 'failed' | 'analyzing' | 'complete' | 'nopose' | 'error' | 'saveFailed' | 'saved' | 'ready2'>('init')
+  const { t } = useTranslation()
+
+  const statusMessages: Record<string, string> = {
+    init: t('measure.statusInitAi'),
+    loading: t('measure.statusLoadingAi'),
+    ready: t('measure.statusAiReady'),
+    failed: t('measure.statusAiFailed'),
+    analyzing: t('measure.statusAnalyzing'),
+    complete: t('measure.statusComplete'),
+    nopose: t('measure.statusNoPose'),
+    error: t('measure.statusError'),
+    saveFailed: t('measure.statusSaveFailed'),
+    saved: t('measure.statusSaved'),
+    ready2: t('measure.statusReady'),
+  }
+
+  const statusClass = (key: string) => {
+    if (['ready', 'complete', 'saved'].includes(key)) return 'bg-green-50 text-green-700'
+    if (['failed', 'error', 'saveFailed', 'nopose'].includes(key)) return 'bg-red-50 text-red-700'
+    return 'bg-indigo-50 text-indigo-700'
+  }
 
   const initModel = async () => {
     setLoading(true)
-    setMessage('Loading AI model — this takes a few seconds...')
+    setStatusKey('loading')
     try {
       await initPoseLandmarker()
       setPoseInitialized(true)
-      setMessage('✅ AI model ready! Upload a photo to measure.')
+      setStatusKey('ready')
     } catch {
-      setMessage('❌ Failed to load AI model. Please refresh the page.')
+      setStatusKey('failed')
     }
     setLoading(false)
   }
@@ -29,7 +51,7 @@ export default function Measure() {
     const file = e.target.files?.[0]
     if (!file) return
     setLoading(true)
-    setMessage('🔍 Analyzing your photo...')
+    setStatusKey('analyzing')
     setMeasurements(null)
     setSaved(false)
 
@@ -54,12 +76,12 @@ export default function Measure() {
         const chest = Math.round(shoulderWidth * scale * 1.2)
         const hip = Math.round(hipWidth * scale)
         setMeasurements({ waist, chest, hip })
-        setMessage('✅ Measurement complete! Review your results below.')
+        setStatusKey('complete')
       } else {
-        setMessage('⚠️ Could not detect pose. Please upload a clear full-body front photo.')
+        setStatusKey('nopose')
       }
     } catch {
-      setMessage('❌ Error analyzing photo. Please try again.')
+      setStatusKey('error')
     }
     setLoading(false)
   }
@@ -76,10 +98,10 @@ export default function Measure() {
       chest: measurements.chest,
     })
     if (error) {
-      setMessage('❌ Failed to save measurement')
+      setStatusKey('saveFailed')
     } else {
       setSaved(true)
-      setMessage('✅ Measurement saved! View it in your History.')
+      setStatusKey('saved')
     }
   }
 
@@ -87,7 +109,7 @@ export default function Measure() {
     setImageUrl(null)
     setMeasurements(null)
     setSaved(false)
-    setMessage('Ready! Upload another photo.')
+    setStatusKey('ready2')
     if (fileInputRef.current) fileInputRef.current.value = ''
   }
 
@@ -97,10 +119,10 @@ export default function Measure() {
         {/* Header */}
         <div className="text-center mb-8">
           <div className="inline-flex items-center gap-2 bg-indigo-100 text-indigo-700 px-3 py-1 rounded-full text-xs font-medium mb-3">
-            <Zap className="w-3 h-3" /> AI-Powered Analysis
+            <Zap className="w-3 h-3" /> {t('measure.aiPowered')}
           </div>
-          <h1 className="text-2xl font-bold text-gray-900">Body Measurement</h1>
-          <p className="text-sm text-gray-500 mt-1">Upload a front-facing full-body photo</p>
+          <h1 className="text-2xl font-bold text-gray-900">{t('measure.title')}</h1>
+          <p className="text-sm text-gray-500 mt-1">{t('measure.uploadHint')}</p>
         </div>
 
         {/* Init / Upload card */}
@@ -110,14 +132,14 @@ export default function Measure() {
               <div className="w-16 h-16 bg-indigo-100 rounded-2xl flex items-center justify-center mx-auto mb-4">
                 <ShieldCheck className="w-8 h-8 text-indigo-600" />
               </div>
-              <h3 className="font-semibold text-gray-900 mb-1">Initialize AI Model</h3>
-              <p className="text-sm text-gray-500 mb-4">Our AI runs locally in your browser — no data is uploaded</p>
+              <h3 className="font-semibold text-gray-900 mb-1">{t('measure.initModel')}</h3>
+              <p className="text-sm text-gray-500 mb-4">{t('measure.initModelDesc')}</p>
               <button
                 onClick={initModel}
                 disabled={loading}
                 className="w-full bg-indigo-600 hover:bg-indigo-700 text-white font-semibold py-3 rounded-xl transition-all active:scale-[0.98] disabled:opacity-60 flex items-center justify-center gap-2"
               >
-                {loading ? <><RefreshCw className="w-4 h-4 animate-spin" /> Loading...</> : <><Zap className="w-4 h-4" /> Initialize AI Model</>}
+                {loading ? <><RefreshCw className="w-4 h-4 animate-spin" /> {t('measure.loading')}</> : <><Zap className="w-4 h-4" /> {t('measure.initialize')}</>}
               </button>
             </div>
           ) : (
@@ -129,8 +151,8 @@ export default function Measure() {
               <div className="w-14 h-14 bg-indigo-100 rounded-2xl flex items-center justify-center mx-auto mb-3">
                 <Upload className="w-7 h-7 text-indigo-600" />
               </div>
-              <p className="font-medium text-gray-700">Click to upload photo</p>
-              <p className="text-xs text-gray-400 mt-1">JPG, PNG — front-facing full body works best</p>
+              <p className="font-medium text-gray-700">{t('measure.clickToUpload')}</p>
+              <p className="text-xs text-gray-400 mt-1">{t('measure.uploadHintSmall')}</p>
             </div>
           )}
         </div>
@@ -140,10 +162,10 @@ export default function Measure() {
           <div className="bg-white rounded-2xl shadow-lg p-4 mb-4">
             <div className="flex items-center justify-between mb-3">
               <h3 className="font-medium text-gray-700 flex items-center gap-2">
-                <Camera className="w-4 h-4 text-gray-400" /> Your Photo
+                <Camera className="w-4 h-4 text-gray-400" /> {t('measure.yourPhoto')}
               </h3>
               <button onClick={reset} className="text-xs text-indigo-600 hover:underline flex items-center gap-1">
-                <RefreshCw className="w-3 h-3" /> New photo
+                <RefreshCw className="w-3 h-3" /> {t('measure.newPhoto')}
               </button>
             </div>
             <img src={imageUrl} alt="Preview" className="w-full rounded-xl shadow" />
@@ -154,17 +176,17 @@ export default function Measure() {
         {measurements && (
           <div className="bg-white rounded-2xl shadow-lg p-6 mb-4">
             <h3 className="font-semibold text-gray-900 mb-4 flex items-center gap-2">
-              <Target className="w-4 h-4 text-indigo-600" /> Estimated Measurements
+              <Target className="w-4 h-4 text-indigo-600" /> {t('measure.estimatedMeasurements')}
             </h3>
             <div className="grid grid-cols-3 gap-3">
               {[
-                { label: 'Waist', value: measurements.waist },
-                { label: 'Chest', value: measurements.chest },
-                { label: 'Hip', value: measurements.hip },
+                { label: t('measure.waist'), value: measurements.waist },
+                { label: t('measure.chest'), value: measurements.chest },
+                { label: t('measure.hip'), value: measurements.hip },
               ].map(({ label, value }) => (
                 <div key={label} className="bg-indigo-50 rounded-xl p-3 text-center">
                   <p className="text-xl font-bold text-indigo-700">{value}</p>
-                  <p className="text-xs text-indigo-500 font-medium mt-1">{label} (cm)</p>
+                  <p className="text-xs text-indigo-500 font-medium mt-1">{label} ({t('measure.cm')})</p>
                 </div>
               ))}
             </div>
@@ -175,25 +197,21 @@ export default function Measure() {
                 saved ? 'bg-green-100 text-green-700' : 'bg-indigo-600 hover:bg-indigo-700 text-white'
               }`}
             >
-              {saved ? <><CheckCircle className="w-4 h-4" /> Saved to History</> : <><Save className="w-4 h-4" /> Save Measurement</>}
+              {saved ? <><CheckCircle className="w-4 h-4" /> {t('measure.savedToHistory')}</> : <><Save className="w-4 h-4" /> {t('measure.saveMeasurement')}</>}
             </button>
           </div>
         )}
 
         {/* Status message */}
-        <div className={`text-center text-sm py-3 px-4 rounded-xl ${
-          message.includes('✅') || message.includes('saved') ? 'bg-green-50 text-green-700' :
-          message.includes('⚠️') || message.includes('Failed') || message.includes('❌') ? 'bg-red-50 text-red-700' :
-          'bg-indigo-50 text-indigo-700'
-        }`}>
-          {message}
+        <div className={`text-center text-sm py-3 px-4 rounded-xl ${statusClass(statusKey)}`}>
+          {statusMessages[statusKey]}
         </div>
 
         {/* Tips */}
         <div className="mt-6 grid grid-cols-2 gap-3">
           {[
-            { title: 'Good lighting', desc: 'Natural light from the front works best' },
-            { title: 'Tight clothing', desc: 'Wear fitted clothes for accurate results' },
+            { title: t('measure.tipsGoodLighting'), desc: t('measure.tipsGoodLightingDesc') },
+            { title: t('measure.tipsTightClothing'), desc: t('measure.tipsTightClothingDesc') },
           ].map(({ title, desc }) => (
             <div key={title} className="bg-white/60 rounded-xl p-3">
               <p className="text-xs font-semibold text-gray-700">{title}</p>
