@@ -75,7 +75,9 @@
     "statusError": "❌ 分析照片时出错，请重试。",
     "statusSaveFailed": "❌ 保存测量结果失败",
     "statusSaved": "✅ 测量结果已保存！去历史记录查看。",
-    "statusReady": "已就绪！上传另一张照片。"
+    "statusReady": "已就绪！上传另一张照片。",
+    "statusLimitReached": "⛔ 今日测量次数已达上限！升级 Pro 版无限测量。",
+    "freeDailyLimit": "免费版：每天 1 次测量"
   },
   "history": {
     "title": "测量历史",
@@ -124,6 +126,25 @@
     "comingSoon": "即将上线 — 支付功能筹备中",
     "currentlyFree": "目前免费使用，支付功能即将开通。",
     "joinEarly": "加入早期用户，打造理想体型",
-    "avgRating": "5.0 平均评分（早期测试者）"
+    "avgRating": "5.0 平均评分（早期测试者）",
+    "proActive": "Pro 已激活",
+    "freePlan": "免费版",
+    "alreadyPro": "您已经是 Pro 会员！",
+    "upgradeToPro": "升级到 Pro 版",
+    "enjoyPro": "感谢您成为 Pro 会员！",
+    "backToMeasure": "返回测量"
+  },
+  "upgradeModal": {
+    "dailyLimitTitle": "今日测量次数已达上限",
+    "dailyLimitDesc": "免费用户每天只能测量 1 次。升级到 Pro 版即可无限测量。",
+    "saveFailedTitle": "保存失败",
+    "saveFailedDesc": "保存时出现问题，请重试。",
+    "freeLimitNote": "免费版每天 1 次测量",
+    "proBenefits": "Pro 版特权：",
+    "benefitUnlimited": "无限测量次数",
+    "benefitPhotos": "无限照片存储",
+    "benefitExport": "数据导出（CSV/PDF）",
+    "goPro": "升级 Pro — $4.99/月",
+    "maybeLater": "稍后再说"
   }
 }

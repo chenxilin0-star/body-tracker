@@ -3,16 +3,39 @@ import { supabase } from '../lib/supabase'
 import { initPoseLandmarker, detectPose } from '../lib/pose'
 import { Camera, Upload, CheckCircle, RefreshCw, Save, Zap, Target, ShieldCheck } from 'lucide-react'
 import { useTranslation } from 'react-i18next'
+import { useUserStore } from '../store/userStore'
+import UpgradeModal from '../components/UpgradeModal'
+
+function isToday(dateStr: string) {
+  const date = new Date(dateStr)
+  const now = new Date()
+  return (
+    date.getFullYear() === now.getFullYear() &&
+    date.getMonth() === now.getMonth() &&
+    date.getDate() === now.getDate()
+  )
+}
+
+async function getTodayMeasurementCount(userId: string): Promise<number> {
+  const { data } = await supabase
+    .from('measurements')
+    .select('created_at')
+    .eq('user_id', userId)
+  if (!data) return 0
+  return data.filter((m) => isToday(m.created_at)).length
+}
 
 export default function Measure() {
   const [loading, setLoading] = useState(false)
   const [imageUrl, setImageUrl] = useState<string | null>(null)
   const [measurements, setMeasurements] = useState<{waist?: number, hip?: number, chest?: number} | null>(null)
   const [saved, setSaved] = useState(false)
+  const [showUpgradeModal, setShowUpgradeModal] = useState(false)
   const fileInputRef = useRef<HTMLInputElement>(null)
   const [poseInitialized, setPoseInitialized] = useState(false)
-  const [statusKey, setStatusKey] = useState<'init' | 'loading' | 'ready' | 'failed' | 'analyzing' | 'complete' | 'nopose' | 'error' | 'saveFailed' | 'saved' | 'ready2'>('init')
+  const [statusKey, setStatusKey] = useState<'init' | 'loading' | 'ready' | 'failed' | 'analyzing' | 'complete' | 'nopose' | 'error' | 'saveFailed' | 'saved' | 'ready2' | 'limitReached'>('init')
   const { t } = useTranslation()
+  const { user, isPro } = useUserStore()
 
   const statusMessages: Record<string, string> = {
     init: t('measure.statusInitAi'),
@@ -26,11 +49,12 @@ export default function Measure() {
     saveFailed: t('measure.statusSaveFailed'),
     saved: t('measure.statusSaved'),
     ready2: t('measure.statusReady'),
+    limitReached: t('measure.statusLimitReached'),
   }
 
   const statusClass = (key: string) => {
     if (['ready', 'complete', 'saved'].includes(key)) return 'bg-green-50 text-green-700'
-    if (['failed', 'error', 'saveFailed', 'nopose'].includes(key)) return 'bg-red-50 text-red-700'
+    if (['failed', 'error', 'saveFailed', 'nopose', 'limitReached'].includes(key)) return 'bg-red-50 text-red-700'
     return 'bg-indigo-50 text-indigo-700'
   }
 
@@ -87,9 +111,18 @@ export default function Measure() {
   }
 
   const saveMeasurement = async () => {
-    if (!measurements) return
-    const { data: { user } } = await supabase.auth.getUser()
-    if (!user) return
+    if (!measurements || !user) return
+
+    // Check daily limit for non-Pro users
+    if (!isPro) {
+      const todayCount = await getTodayMeasurementCount(user.id)
+      if (todayCount >= 1) {
+        setStatusKey('limitReached')
+        setShowUpgradeModal(true)
+        return
+      }
+    }
+
     const { error } = await supabase.from('measurements').insert({
       user_id: user.id,
       photo_front_url: imageUrl,
@@ -115,6 +148,8 @@ export default function Measure() {
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-gray-50 to-indigo-50 py-8 px-4">
+      <UpgradeModal open={showUpgradeModal} onClose={() => setShowUpgradeModal(false)} reason="daily_limit" />
+
       <div className="max-w-lg mx-auto">
         {/* Header */}
         <div className="text-center mb-8">
@@ -123,6 +158,11 @@ export default function Measure() {
           </div>
           <h1 className="text-2xl font-bold text-gray-900">{t('measure.title')}</h1>
           <p className="text-sm text-gray-500 mt-1">{t('measure.uploadHint')}</p>
+          {!isPro && (
+            <p className="text-xs text-gray-400 mt-1">
+              {t('measure.freeDailyLimit')}
+            </p>
+          )}
         </div>
 
         {/* Init / Upload card */}

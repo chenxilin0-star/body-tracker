@@ -2,6 +2,7 @@ import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom'
 import { useEffect, useState } from 'react'
 import { useUserStore } from './store/userStore'
 import { getCurrentUser } from './hooks/useSupabase'
+import { supabase } from './lib/supabase'
 
 // Pages
 import Login from './pages/Login'
@@ -26,9 +27,42 @@ function App() {
   const [loading, setLoading] = useState(true)
 
   useEffect(() => {
-    getCurrentUser().then(({ data }) => {
+    getCurrentUser().then(async ({ data }) => {
       if (data.user) {
-        setUser({ id: data.user.id, email: data.user.email })
+        // Fetch profile with subscription_status
+        const { data: profile } = await supabase
+          .from('profiles')
+          .select('*')
+          .eq('id', data.user.id)
+          .single()
+        
+        if (profile) {
+          setUser({
+            id: profile.id,
+            email: profile.email,
+            created_at: profile.created_at,
+            subscription_status: profile.subscription_status || 'free',
+          })
+        } else {
+          // Fallback: create profile
+          const { data: newProfile } = await supabase
+            .from('profiles')
+            .insert({
+              id: data.user.id,
+              email: data.user.email || '',
+              subscription_status: 'free',
+            })
+            .select()
+            .single()
+          if (newProfile) {
+            setUser({
+              id: newProfile.id,
+              email: newProfile.email,
+              created_at: newProfile.created_at,
+              subscription_status: newProfile.subscription_status,
+            })
+          }
+        }
       }
       setLoading(false)
     })

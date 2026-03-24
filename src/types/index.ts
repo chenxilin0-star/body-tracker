@@ -7,6 +7,7 @@ export interface Profile {
   id: string
   email: string
   created_at: string
+  subscription_status: 'free' | 'pro'
 }
 
 export interface Measurement {

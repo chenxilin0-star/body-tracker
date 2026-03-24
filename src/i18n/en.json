@@ -75,7 +75,9 @@
     "statusError": "❌ Error analyzing photo. Please try again.",
     "statusSaveFailed": "❌ Failed to save measurement",
     "statusSaved": "✅ Measurement saved! View it in your History.",
-    "statusReady": "Ready! Upload another photo."
+    "statusReady": "Ready! Upload another photo.",
+    "statusLimitReached": "⛔ Daily limit reached! Upgrade to Pro for unlimited.",
+    "freeDailyLimit": "Free plan: 1 measurement/day"
   },
   "history": {
     "title": "Measurement History",
@@ -124,6 +126,25 @@
     "comingSoon": "Coming Soon — Payment Integration Pending",
     "currentlyFree": "Currently free to use. Payment will be enabled shortly.",
     "joinEarly": "Join early adopters building their dream physique",
-    "avgRating": "5.0 average rating (early testers)"
+    "avgRating": "5.0 average rating (early testers)",
+    "proActive": "Pro Active",
+    "freePlan": "Free Plan",
+    "alreadyPro": "You're already a Pro member!",
+    "upgradeToPro": "Upgrade to Pro",
+    "enjoyPro": "Thank you for being a Pro member!",
+    "backToMeasure": "Back to Measure"
+  },
+  "upgradeModal": {
+    "dailyLimitTitle": "Daily Limit Reached",
+    "dailyLimitDesc": "Free users can measure once per day. Upgrade to Pro for unlimited measurements.",
+    "saveFailedTitle": "Could Not Save",
+    "saveFailedDesc": "Something went wrong. Please try again.",
+    "freeLimitNote": "1 measurement/day on free plan",
+    "proBenefits": "Pro Benefits:",
+    "benefitUnlimited": "Unlimited measurements",
+    "benefitPhotos": "Unlimited photo storage",
+    "benefitExport": "Data export (CSV/PDF)",
+    "goPro": "Go Pro — $4.99/mo",
+    "maybeLater": "Maybe later"
   }
 }

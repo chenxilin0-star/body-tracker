@@ -23,7 +23,7 @@ export default function Register() {
     const { data, error } = await signUp(email, password)
     if (error) { setError(error.message); setLoading(false); return }
     if (data.user) {
-      setUser({ id: data.user.id, email: data.user.email })
+      setUser({ id: data.user.id, email: data.user.email ?? '' })
       navigate('/measure')
     }
   }
